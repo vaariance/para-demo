@@ -1,9 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:para/para.dart';
 import 'package:para_demo/client/para_client.dart';
-import 'package:para_demo/screen/cosmos.dart';
 import 'package:para_demo/screen/evm_wallet.dart';
-import 'package:para_demo/screen/solana_wallet.dart';
 import 'package:para_demo/screen/wallet_card.dart';
 
 class WalletsScreen extends StatefulWidget {
@@ -238,10 +236,6 @@ class _WalletsScreenState extends State<WalletsScreen> {
           switch (wallet.type) {
             case WalletType.evm:
               return EVMWalletView(wallet: wallet);
-            case WalletType.solana:
-              return SolanaWalletView(wallet: wallet);
-            case WalletType.cosmos:
-              return CosmosWalletView(wallet: wallet);
             default:
               return Scaffold(
                 appBar: AppBar(title: const Text('Unknown Wallet')),
