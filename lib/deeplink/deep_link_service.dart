@@ -6,10 +6,10 @@ import 'package:para_demo/deeplink/deeplink_const.dart';
 /// Service for handling deep links in the Para Flutter app.
 ///
 /// This service uses the app_links package to handle incoming deep links
-/// with the custom scheme 'paraflutter://'. It supports:
+/// with the custom scheme 'para_demo://'. It supports:
 ///
-/// 1. Authentication callbacks from Para SDK (paraflutter://callback)
-/// 2. Wallet connection links (paraflutter://wallet/connect)
+/// 1. Authentication callbacks from Para SDK (para_demo://callback)
+/// 2. Wallet connection links (para_demo://wallet/connect)
 /// 3. Custom deep links for app navigation
 class DeepLinkService {
   static final DeepLinkService _instance = DeepLinkService._internal();

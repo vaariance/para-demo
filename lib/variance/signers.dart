@@ -89,9 +89,10 @@ class ParaSigner extends MSI {
     );
 
     try {
-      final signerAddress = signer is String
-          ? EthereumAddress.fromHex(signer)
-          : signer as EthereumAddress;
+      final signerAddress =
+          signer is String
+              ? EthereumAddress.fromHex(signer)
+              : signer as EthereumAddress;
 
       if (signature is Uint8List) {
         return Future.value(
@@ -130,106 +131,4 @@ class ParaSigner extends MSI {
   para.WalletType? get walletType => _wallet.type;
 
   String get walletId => _wallet.id!;
-}
-
-extension ParaSignerExtension on para.Para {
-  Future<ParaSigner> createSigner() async {
-    return await ParaSigner.create(this);
-  }
-
-  Future<String> transferToken({
-    required String walletId,
-    required String to,
-    required String amount,
-    String? tokenAddress,
-    String? chainId,
-    String? rpcUrl,
-  }) async {
-    if (tokenAddress != null) {
-      final transferSelector = '0xa9059cbb';
-
-      final addressParam = to.replaceAll('0x', '').padLeft(64, '0');
-      final amountBigInt = BigInt.parse(amount);
-      final amountParam = amountBigInt.toRadixString(16).padLeft(64, '0');
-
-      final data = '$transferSelector$addressParam$amountParam';
-
-      final transaction = {'to': tokenAddress, 'data': data, 'value': '0'};
-
-      final result = await signTransaction(
-        walletId: walletId,
-        transaction: transaction,
-        chainId: chainId,
-        rpcUrl: rpcUrl,
-      );
-
-      if (result is para.SuccessfulSignatureResult) {
-        return result.signedTransaction;
-      }
-
-      throw Exception('Failed to transfer ERC20: $result');
-    } else {
-      final result = await transfer(
-        walletId: walletId,
-        to: to,
-        amount: amount,
-        chainId: chainId,
-        rpcUrl: rpcUrl,
-      );
-
-      return result.hash;
-    }
-  }
-
-  Future<String> mintNft({
-    required String walletId,
-    required String nftContractAddress,
-    required String to,
-    required String tokenId,
-    String? tokenUri,
-    String? chainId,
-    String? rpcUrl,
-  }) async {
-    String data;
-
-    if (tokenUri != null && tokenUri.isNotEmpty) {
-      // safeMint(address,uint256,string) - 0xd204c45e
-      final selector = '0xd204c45e';
-      final addressParam = to.replaceAll('0x', '').padLeft(64, '0');
-      final tokenIdBigInt = BigInt.parse(tokenId);
-      final tokenIdParam = tokenIdBigInt.toRadixString(16).padLeft(64, '0');
-
-      final stringOffset =
-          '0000000000000000000000000000000000000000000000000000000000000060';
-
-      // String data
-      final uriBytes = tokenUri.codeUnits;
-      final uriLength = uriBytes.length.toRadixString(16).padLeft(64, '0');
-      final uriHex = uriBytes
-          .map((b) => b.toRadixString(16).padLeft(2, '0'))
-          .join();
-      final uriData = uriHex.padRight(((uriBytes.length + 31) ~/ 32) * 64, '0');
-
-      data =
-          '$selector$addressParam$tokenIdParam$stringOffset$uriLength$uriData';
-    } else {
-      final selector = '0x40c10f19';
-      final addressParam = to.replaceAll('0x', '').padLeft(64, '0');
-      final tokenIdBigInt = BigInt.parse(tokenId);
-      final tokenIdParam = tokenIdBigInt.toRadixString(16).padLeft(64, '0');
-      data = '$selector$addressParam$tokenIdParam';
-    }
-
-    final result = await signTransaction(
-      walletId: walletId,
-      transaction: {'to': nftContractAddress, 'data': data, 'value': '0'},
-      chainId: chainId,
-      rpcUrl: rpcUrl,
-    );
-
-    if (result is para.SuccessfulSignatureResult) {
-      return result.signedTransaction;
-    }
-    throw Exception('Failed to mint NFT: $result');
-  }
 }

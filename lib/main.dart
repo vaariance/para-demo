@@ -11,11 +11,11 @@ void main() async {
   await dotenv.load(fileName: ".env");
   await paraClient.initialize();
 
-  runApp(const ParaFlutterApp());
+  runApp(const para_demoApp());
 }
 
-class ParaFlutterApp extends StatelessWidget {
-  const ParaFlutterApp({super.key});
+class para_demoApp extends StatelessWidget {
+  const para_demoApp({super.key});
 
   @override
   Widget build(BuildContext context) {

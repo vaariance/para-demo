@@ -24,7 +24,7 @@ class _AuthScreenState extends State<AuthScreen> {
   @override
   void initState() {
     super.initState();
-    _webAuthSession = FlutterWebAuthSession(callbackUrlScheme: 'paraflutter');
+    _webAuthSession = FlutterWebAuthSession(callbackUrlScheme: 'para_demo');
   }
 
   @override
@@ -45,7 +45,7 @@ class _AuthScreenState extends State<AuthScreen> {
 
       final authState = await paraClient.para.verifyOAuth(
         provider: oauthMethod,
-        appScheme: 'paraflutter',
+        appScheme: 'para_demo',
       );
 
       await _continueAuth(authState, flow: _AuthFlow.oauth);

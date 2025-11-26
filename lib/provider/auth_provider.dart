@@ -10,7 +10,11 @@ class AuthProvider with ChangeNotifier {
   AppAuthState _state = AppAuthState.initial;
   ParaUser? _currentUser;
   String? _errorMessage;
-  late final FlutterWebAuthSession _webAuthSession;
+
+  // @maxiggle: this is not anywhere why? i beleive it's needed during the login process?
+  final FlutterWebAuthSession _webAuthSession = FlutterWebAuthSession(
+    callbackUrlScheme: 'para_demo',
+  );
 
   AppAuthState get state => _state;
   ParaUser? get currentUser => _currentUser;
@@ -18,9 +22,7 @@ class AuthProvider with ChangeNotifier {
   bool get isAuthenticated => _state == AppAuthState.authenticated;
   bool get isLoading => _state == AppAuthState.loading;
 
-  AuthProvider() {
-    _webAuthSession = FlutterWebAuthSession(callbackUrlScheme: 'paraflutter');
-  }
+  AuthProvider();
 
   Future<void> initialize() async {
     _setState(AppAuthState.loading);
