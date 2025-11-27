@@ -22,13 +22,11 @@ dependencies:
   shared_preferences: ^2.5.3
   flutter_svg: ^2.2.3
   rename: ^3.1.0
+  web3dart: ^2.7.3
 
 dependency_overrides:
-  pinenacl: ^0.6.0
-  freezed_annotation: ^3.0.0
+  pinenacl: 0.6.0
   device_info_plus: ^11.2.0
-  pointycastle: ^4.0.0
-  web3dart: ^2.7.3
 
 dev_dependencies:
   flutter_test:

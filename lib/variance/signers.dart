@@ -4,23 +4,13 @@ import 'package:variance_dart/variance_dart.dart';
 import 'package:web3_signers/web3_signers.dart';
 import 'package:web3dart/crypto.dart';
 import 'package:web3dart/web3dart.dart';
-import 'package:eip712/eip712.dart';
+import 'package:eth_sig_util/eth_sig_util.dart';
 
 class ParaSigner extends MSI {
   final para.Para client;
   final para.Wallet _wallet;
 
   ParaSigner._(this.client, this._wallet);
-
-  static Future<SmartWalletFactory> createFactory(
-    para.Para client,
-    para.Wallet wallet,
-    Chain chain,
-  ) async {
-    final signer = ParaSigner.fromWallet(client, wallet);
-
-    return SmartWalletFactory(chain, signer);
-  }
 
   static Future<SmartWallet> createSafeAccount(
     para.Para client,
@@ -127,7 +117,7 @@ class ParaSigner extends MSI {
 
   @override
   Future<Uint8List> signTypedData(
-    TypedMessage jsonData,
+    String jsonData,
     TypedDataVersion version, {
     int? index,
   }) {

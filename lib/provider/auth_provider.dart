@@ -1,4 +1,7 @@
+import 'dart:developer';
+
 import 'package:flutter/foundation.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:para/para.dart';
 import 'package:para_demo/client/para_client.dart';
 import 'package:para_demo/variance/signers.dart';
@@ -175,26 +178,21 @@ class AuthProvider with ChangeNotifier {
       _smartWallet = safeAccount;
       _setSmartWalletState(SmartWalletState.created);
     } catch (e) {
+      log(e.toString());
+      _setSmartWalletState(SmartWalletState.initial);
       rethrow;
     }
   }
 
   Chain getChain() {
-    return Chain(
-      chainId: 84532,
-      entrypoint: EntryPointAddress.v07,
-      explorer: 'https://base-sepolia.blockscout.com/',
-      accountFactory: web3dart.EthereumAddress.fromHex(
-        '0x000000a56Aaca3e9a4C479ea6b6CD0DbcB6634F5',
-      ),
-      bundler: (
-        headers: null,
-        url:
-            'https://api.pimlico.io/v2/84532/rpc?apikey=pim_7j7g4uNKovQUN4kXWRvCKU',
-      ),
-      jsonRpc: (headers: null, url: 'https://base-sepolia.gateway.tenderly.co'),
-      testnet: true,
-    );
+    return Chains.getChain(Network.baseTestnet)
+      ..accountFactory = Addresses.safeProxyFactoryAddress
+      ..bundlerUrl =
+          'https://api.pimlico.io/v2/84532/rpc?apikey=pim_7j7g4uNKovQUN4kXWRvCKU'
+      ..jsonRpcUrl = 'https://base-sepolia.gateway.tenderly.co'
+      ..testnet = true
+      ..paymasterUrl =
+          'https://api.pimlico.io/v2/84532/rpc?apikey=pim_7j7g4uNKovQUN4kXWRvCKU';
   }
 
   Future<void> logout() async {
