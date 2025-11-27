@@ -1,8 +1,28 @@
+import 'dart:developer';
+
 import 'package:flutter/foundation.dart';
 import 'package:para/para.dart';
 import 'package:para_demo/client/para_client.dart';
+import 'package:para_demo/variance/signers.dart';
+import 'package:variance_dart/variance_dart.dart';
+import 'package:web3_signers/web3_signers.dart';
+import 'package:web3dart/web3dart.dart' as web3dart;
 
 enum WalletLoadState { initial, loading, loaded, error }
+
+enum SmartWalletState { initial, loading, created }
+
+final EthereumAddress nft = EthereumAddress.fromHex(
+  "0xEBE46f55b40C0875354Ac749893fe45Ce28e1333",
+);
+// fuse = Address.fromHex("0xBF20E2bB8bb6859A424C898d5a2995c3659b90f2");
+final EthereumAddress erc20 = EthereumAddress.fromHex(
+  "0x7BF7957315AFbC9bA717b004BB9E3f43321a9A48",
+);
+// fuse = Address.fromHex("0xAc94c8dD3094AB2D68B092AA34A6e29A293E592a");
+final EthereumAddress dump = EthereumAddress.fromHex(
+  "0xf5bb7f874d8e3f41821175c0aa9910d30d10e193",
+);
 
 class WalletProvider with ChangeNotifier {
   WalletLoadState _state = WalletLoadState.initial;
@@ -11,6 +31,7 @@ class WalletProvider with ChangeNotifier {
   bool _isRefreshing = false;
   WalletType? _creatingWalletType;
   bool _isDeletingAccount = false;
+  SmartWalletState _smartWalletState = SmartWalletState.initial;
 
   WalletLoadState get state => _state;
   List<Wallet> get wallets => _wallets;
@@ -19,6 +40,14 @@ class WalletProvider with ChangeNotifier {
   WalletType? get creatingWalletType => _creatingWalletType;
   bool get isDeletingAccount => _isDeletingAccount;
   bool get isLoading => _state == WalletLoadState.loading;
+  SmartWallet? _smartWallet;
+
+  SmartWalletState get smartWalletState => _smartWalletState;
+  bool get isCreatingSmartWallet =>
+      _smartWalletState == SmartWalletState.loading;
+  bool get isSmartWalletCreated =>
+      _smartWalletState == SmartWalletState.created;
+  SmartWallet? get smartWallet => _smartWallet;
 
   Future<void> loadWallets() async {
     _state = WalletLoadState.loading;
@@ -38,6 +67,70 @@ class WalletProvider with ChangeNotifier {
       _errorMessage = e.toString();
       notifyListeners();
       rethrow;
+    }
+  }
+
+  Future<void> createSafeAccounts(List<Wallet> wallets) async {
+    try {
+      _setSmartWalletState(SmartWalletState.loading);
+      final safeAccount = await ParaSigner.createSafeAccount(
+        paraClient.para,
+        wallets.where((w) => w.type == WalletType.evm).first,
+        getChain(),
+        Uint256.zero,
+      );
+      _smartWallet = safeAccount;
+      _setSmartWalletState(SmartWalletState.created);
+    } catch (e) {
+      log(e.toString());
+      _setSmartWalletState(SmartWalletState.initial);
+      rethrow;
+    }
+  }
+
+  Chain getChain() {
+    return Chains.getChain(Network.baseTestnet)
+      ..accountFactory = Addresses.safeProxyFactoryAddress
+      ..bundlerUrl = ''
+      ..jsonRpcUrl = 'https://sepolia.base.org'
+      ..testnet = true
+      ..paymasterUrl = '';
+  }
+
+  Future<(bool, String)> simulateTransfer(SmartWallet smartWallet) async {
+    log('My address ${smartWallet.address.hex}');
+    final amount = BigInt.from(20e18);
+
+    final transferCall = Contract.encodeERC20TransferCall(
+      erc20,
+      dump,
+      web3dart.EtherAmount.fromBigInt(web3dart.EtherUnit.ether, amount),
+    );
+
+    try {
+      UserOperationResponse? tx;
+      tx = await smartWallet.sendTransaction(
+        erc20,
+        transferCall,
+        amount: web3dart.EtherAmount.fromBigInt(
+          web3dart.EtherUnit.ether,
+          amount,
+        ),
+      );
+
+      final reciept = await tx.wait();
+      final txHash = reciept?.userOpHash;
+      if (txHash == null) {
+        return (false, "Transaction failed");
+      }
+      return (true, txHash);
+    } catch (e) {
+      final errString = e.toString();
+      log(errString);
+      return (
+        false,
+        errString.substring(0, errString.length > 200 ? 200 : null),
+      );
     }
   }
 
@@ -87,6 +180,11 @@ class WalletProvider with ChangeNotifier {
       _isDeletingAccount = false;
       notifyListeners();
     }
+  }
+
+  void _setSmartWalletState(SmartWalletState newState) {
+    _smartWalletState = newState;
+    notifyListeners();
   }
 
   void clearError() {
