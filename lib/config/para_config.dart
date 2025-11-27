@@ -11,7 +11,6 @@ class ParaConfiguration {
     this.environment = Environment.sandbox,
   }) : apiKey = _getApiKey(apiKey);
 
-  /// Checks for PARA_API_KEY environment variable override
   static String _getApiKey(String defaultKey) {
     try {
       final envKey = Platform.environment['PARA_API_KEY'];

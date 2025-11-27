@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:para/para.dart';
-import 'package:para_demo/client/para_client.dart';
-import 'package:para_demo/variance/signers.dart';
 
 class EVMWalletView extends StatefulWidget {
   final Wallet wallet;
@@ -98,55 +96,12 @@ class _EVMWalletViewState extends State<EVMWalletView> {
           FilledButton(
             onPressed: () {
               Navigator.of(context).pop();
-              _executeTransfer(
-                to: toController.text.trim(),
-                amount: amountController.text.trim(),
-                tokenAddress: tokenAddressController.text.trim(),
-                chainId: chainIdController.text.trim(),
-                rpcUrl: rpcUrlController.text.trim(),
-              );
             },
             child: const Text('Transfer'),
           ),
         ],
       ),
     );
-  }
-
-  Future<void> _executeTransfer({
-    required String to,
-    required String amount,
-    String? tokenAddress,
-    String? chainId,
-    String? rpcUrl,
-  }) async {
-    if (to.isEmpty || amount.isEmpty) {
-      _showError('Please provide recipient address and amount');
-      return;
-    }
-
-    setState(() => _isProcessing = true);
-
-    try {
-      final txHash = await paraClient.para.transferToken(
-        walletId: widget.wallet.id!,
-        to: to,
-        amount: amount,
-        tokenAddress: tokenAddress?.isEmpty ?? true ? null : tokenAddress,
-        chainId: chainId?.isEmpty ?? true ? null : chainId,
-        rpcUrl: rpcUrl?.isEmpty ?? true ? null : rpcUrl,
-      );
-
-      if (mounted) {
-        setState(() => _isProcessing = false);
-        _showSuccess('Transfer successful!\nTX: $txHash');
-      }
-    } catch (e) {
-      if (mounted) {
-        setState(() => _isProcessing = false);
-        _showError('Transfer failed: ${e.toString()}');
-      }
-    }
   }
 
   Future<void> _showMintNftDialog() async {
@@ -227,61 +182,10 @@ class _EVMWalletViewState extends State<EVMWalletView> {
             onPressed: () => Navigator.of(context).pop(),
             child: const Text('Cancel'),
           ),
-          FilledButton(
-            onPressed: () {
-              Navigator.of(context).pop();
-              _executeMintNft(
-                contractAddress: contractController.text.trim(),
-                to: toController.text.trim(),
-                tokenId: tokenIdController.text.trim(),
-                tokenUri: tokenUriController.text.trim(),
-                chainId: chainIdController.text.trim(),
-                rpcUrl: rpcUrlController.text.trim(),
-              );
-            },
-            child: const Text('Mint'),
-          ),
+          FilledButton(onPressed: () {}, child: const Text('Mint')),
         ],
       ),
     );
-  }
-
-  Future<void> _executeMintNft({
-    required String contractAddress,
-    required String to,
-    required String tokenId,
-    String? tokenUri,
-    String? chainId,
-    String? rpcUrl,
-  }) async {
-    if (contractAddress.isEmpty || to.isEmpty || tokenId.isEmpty) {
-      _showError('Please provide contract address, recipient, and token ID');
-      return;
-    }
-
-    setState(() => _isProcessing = true);
-
-    try {
-      final txHash = await paraClient.para.mintNft(
-        walletId: widget.wallet.id!,
-        nftContractAddress: contractAddress,
-        to: to,
-        tokenId: tokenId,
-        tokenUri: tokenUri?.isEmpty ?? true ? null : tokenUri,
-        chainId: chainId?.isEmpty ?? true ? null : chainId,
-        rpcUrl: rpcUrl?.isEmpty ?? true ? null : rpcUrl,
-      );
-
-      if (mounted) {
-        setState(() => _isProcessing = false);
-        _showSuccess('NFT minted successfully!\nTX: $txHash');
-      }
-    } catch (e) {
-      if (mounted) {
-        setState(() => _isProcessing = false);
-        _showError('Mint failed: ${e.toString()}');
-      }
-    }
   }
 
   void _showError(String message) {

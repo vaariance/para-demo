@@ -1,8 +1,10 @@
 import 'dart:typed_data';
 import 'package:para/para.dart' as para;
+import 'package:variance_dart/variance_dart.dart';
 import 'package:web3_signers/web3_signers.dart';
 import 'package:web3dart/crypto.dart';
-import 'package:eth_sig_util/constant/typed_data_version.dart';
+import 'package:web3dart/web3dart.dart';
+import 'package:eip712/eip712.dart';
 
 class ParaSigner extends MSI {
   final para.Para client;
@@ -10,9 +12,26 @@ class ParaSigner extends MSI {
 
   ParaSigner._(this.client, this._wallet);
 
-  static Future<ParaSigner> create(para.Para client) async {
-    final wallet = await _fetchOrCreateWallet(client);
-    return ParaSigner._(client, wallet);
+  static Future<SmartWalletFactory> createFactory(
+    para.Para client,
+    para.Wallet wallet,
+    Chain chain,
+  ) async {
+    final signer = ParaSigner.fromWallet(client, wallet);
+
+    return SmartWalletFactory(chain, signer);
+  }
+
+  static Future<SmartWallet> createSafeAccount(
+    para.Para client,
+    para.Wallet wallet,
+    Chain chain,
+    Uint256 salt,
+  ) async {
+    final signer = ParaSigner.fromWallet(client, wallet);
+    final factory = SmartWalletFactory(chain, signer);
+
+    return await factory.createSafeAccount(salt);
   }
 
   static ParaSigner fromWallet(para.Para client, para.Wallet wallet) {
@@ -63,17 +82,6 @@ class ParaSigner extends MSI {
   }
 
   @override
-  Future<Uint8List> signTypedData(
-    String jsonData,
-    TypedDataVersion version, {
-    int? index,
-  }) async {
-    return Future.error(
-      UnimplementedError('signTypedData is not implemented yet'),
-    );
-  }
-
-  @override
   Future<ERC1271IsValidSignatureResponse> isValidSignature<T, U>(
     Uint8List hash,
     U signature,
@@ -111,125 +119,18 @@ class ParaSigner extends MSI {
     }
   }
 
-  static Future<para.Wallet> _fetchOrCreateWallet(para.Para client) async {
-    final wallets = await client.fetchWallets();
-
-    if (wallets.isEmpty) {
-      final result = await client.createWallet(
-        type: para.WalletType.evm,
-        skipDistribute: false,
-      );
-      return result;
-    }
-
-    return wallets.first;
-  }
-
   para.Wallet get wallet => _wallet;
 
   para.WalletType? get walletType => _wallet.type;
 
   String get walletId => _wallet.id!;
-}
 
-extension ParaSignerExtension on para.Para {
-  Future<ParaSigner> createSigner() async {
-    return await ParaSigner.create(this);
-  }
-
-  Future<String> transferToken({
-    required String walletId,
-    required String to,
-    required String amount,
-    String? tokenAddress,
-    String? chainId,
-    String? rpcUrl,
-  }) async {
-    if (tokenAddress != null) {
-      final transferSelector = '0xa9059cbb';
-
-      final addressParam = to.replaceAll('0x', '').padLeft(64, '0');
-      final amountBigInt = BigInt.parse(amount);
-      final amountParam = amountBigInt.toRadixString(16).padLeft(64, '0');
-
-      final data = '$transferSelector$addressParam$amountParam';
-
-      final transaction = {'to': tokenAddress, 'data': data, 'value': '0'};
-
-      final result = await signTransaction(
-        walletId: walletId,
-        transaction: transaction,
-        chainId: chainId,
-        rpcUrl: rpcUrl,
-      );
-
-      if (result is para.SuccessfulSignatureResult) {
-        return result.signedTransaction;
-      }
-
-      throw Exception('Failed to transfer ERC20: $result');
-    } else {
-      final result = await transfer(
-        walletId: walletId,
-        to: to,
-        amount: amount,
-        chainId: chainId,
-        rpcUrl: rpcUrl,
-      );
-
-      return result.hash;
-    }
-  }
-
-  Future<String> mintNft({
-    required String walletId,
-    required String nftContractAddress,
-    required String to,
-    required String tokenId,
-    String? tokenUri,
-    String? chainId,
-    String? rpcUrl,
-  }) async {
-    String data;
-
-    if (tokenUri != null && tokenUri.isNotEmpty) {
-      // safeMint(address,uint256,string) - 0xd204c45e
-      final selector = '0xd204c45e';
-      final addressParam = to.replaceAll('0x', '').padLeft(64, '0');
-      final tokenIdBigInt = BigInt.parse(tokenId);
-      final tokenIdParam = tokenIdBigInt.toRadixString(16).padLeft(64, '0');
-
-      final stringOffset =
-          '0000000000000000000000000000000000000000000000000000000000000060';
-
-      // String data
-      final uriBytes = tokenUri.codeUnits;
-      final uriLength = uriBytes.length.toRadixString(16).padLeft(64, '0');
-      final uriHex = uriBytes
-          .map((b) => b.toRadixString(16).padLeft(2, '0'))
-          .join();
-      final uriData = uriHex.padRight(((uriBytes.length + 31) ~/ 32) * 64, '0');
-
-      data =
-          '$selector$addressParam$tokenIdParam$stringOffset$uriLength$uriData';
-    } else {
-      final selector = '0x40c10f19';
-      final addressParam = to.replaceAll('0x', '').padLeft(64, '0');
-      final tokenIdBigInt = BigInt.parse(tokenId);
-      final tokenIdParam = tokenIdBigInt.toRadixString(16).padLeft(64, '0');
-      data = '$selector$addressParam$tokenIdParam';
-    }
-
-    final result = await signTransaction(
-      walletId: walletId,
-      transaction: {'to': nftContractAddress, 'data': data, 'value': '0'},
-      chainId: chainId,
-      rpcUrl: rpcUrl,
-    );
-
-    if (result is para.SuccessfulSignatureResult) {
-      return result.signedTransaction;
-    }
-    throw Exception('Failed to mint NFT: $result');
+  @override
+  Future<Uint8List> signTypedData(
+    TypedMessage jsonData,
+    TypedDataVersion version, {
+    int? index,
+  }) {
+    throw UnimplementedError();
   }
 }

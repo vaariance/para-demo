@@ -22,23 +22,23 @@ class ParaClient {
     // Initialize Para SDK
     para = Para.fromConfig(
       config: config.toParaConfig(),
-      appScheme: 'paraflutter',
+      appScheme: 'parademo',
       sessionPersistence: sessionPersistence,
     );
 
     phantomConnector = ParaPhantomConnector(
       para: para,
-      appUrl: "https://com.para.example.flutter",
-      appScheme: "paraflutter",
+      appUrl: "https://com.example.para_demo",
+      appScheme: "parademo",
     );
 
     metamaskConnector = ParaMetaMaskConnector(
       para: para,
-      appUrl: "https://com.para.example.flutter",
-      appScheme: "paraflutter",
+      appUrl: "https://com.example.para_demo",
+      appScheme: "parademo",
       config: const MetaMaskConfig(
-        appName: "ParaFlutter",
-        appId: "com.para.example.flutter",
+        appName: "ParaDemo",
+        appId: "com.example.para_demo",
       ),
     );
   }
