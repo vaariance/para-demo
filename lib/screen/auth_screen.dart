@@ -1,11 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:para_demo/client/para_client.dart';
 import 'package:para_demo/provider/auth_provider.dart';
 import 'package:para_demo/shared/buttons.dart';
 import 'package:provider/provider.dart';
-import 'package:para/para.dart';
-
-enum _AuthFlow { oauth }
 
 class AuthScreen extends StatefulWidget {
   const AuthScreen({super.key});
@@ -15,21 +11,10 @@ class AuthScreen extends StatefulWidget {
 }
 
 class _AuthScreenState extends State<AuthScreen> {
-  final _emailController = TextEditingController();
-
   SocialProvider? _loadingProvider;
-  final bool _isProcessing = false;
-  late final FlutterWebAuthSession _webAuthSession;
-
-  @override
-  void initState() {
-    super.initState();
-    _webAuthSession = FlutterWebAuthSession(callbackUrlScheme: 'paraflutter');
-  }
 
   @override
   void dispose() {
-    _emailController.dispose();
     super.dispose();
   }
 
@@ -37,18 +22,20 @@ class _AuthScreenState extends State<AuthScreen> {
     setState(() => _loadingProvider = provider);
 
     try {
-      final oauthMethod = switch (provider) {
-        SocialProvider.google => OAuthMethod.google,
-        SocialProvider.apple => OAuthMethod.apple,
-        SocialProvider.discord => OAuthMethod.discord,
-      };
+      final authProvider = context.read<AuthProvider>();
+      await authProvider.loginWithSocial(provider);
 
-      final authState = await paraClient.para.verifyOAuth(
-        provider: oauthMethod,
-        appScheme: 'paraflutter',
-      );
-
-      await _continueAuth(authState, flow: _AuthFlow.oauth);
+      // Check if authentication failed
+      if (mounted && authProvider.state == AppAuthState.error) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              authProvider.errorMessage ?? 'Authentication failed',
+            ),
+          ),
+        );
+        authProvider.clearError();
+      }
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -62,96 +49,8 @@ class _AuthScreenState extends State<AuthScreen> {
     }
   }
 
-  Future<void> _continueAuth(
-    AuthState authState, {
-    required _AuthFlow flow,
-  }) async {
-    if (await _handleOneClick(authState)) {
-      return;
-    }
-
-    if (authState.stage == AuthStage.login) {
-      if (flow == _AuthFlow.oauth) {
-        await _finalizeOAuthLogin();
-      } else {
-        await _completeLogin(authState);
-      }
-    }
-  }
-
-  Future<void> _completeLogin(AuthState authState) async {
-    try {
-      await paraClient.para.handleLogin(
-        authState: authState,
-        webAuthenticationSession: _webAuthSession,
-      );
-
-      if (mounted) {
-        final user = await paraClient.para.currentUser();
-        context.read<AuthProvider>().markAuthenticated(user);
-      }
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Login failed: ${e.toString()}')),
-        );
-      }
-    }
-  }
-
-  Future<void> _finalizeOAuthLogin() async {
-    try {
-      await paraClient.para.touchSession();
-    } catch (_) {}
-
-    await paraClient.para.fetchWallets();
-
-    if (mounted) {
-      final user = await paraClient.para.currentUser();
-      context.read<AuthProvider>().markAuthenticated(user);
-    }
-  }
-
-  Future<bool> _handleOneClick(AuthState authState) async {
-    final url = authState.loginUrl;
-    if (url?.isNotEmpty != true) return false;
-
-    try {
-      await paraClient.para.presentAuthUrl(
-        url: url!,
-        webAuthenticationSession: _webAuthSession,
-      );
-
-      final nextStage = authState.effectiveNextStage;
-      if (nextStage == AuthStage.signup) {
-        await paraClient.para.waitForSignup();
-      } else {
-        await paraClient.para.waitForLogin();
-      }
-
-      await paraClient.para.touchSession();
-      await paraClient.para.fetchWallets();
-
-      if (mounted) {
-        final user = await paraClient.para.currentUser();
-        context.read<AuthProvider>().markAuthenticated(user);
-      }
-
-      return true;
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Authentication failed: ${e.toString()}')),
-        );
-      }
-      return false;
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
-    final isLoading = _isProcessing || _loadingProvider != null;
-
     return Scaffold(
       backgroundColor: const Color(0xFFFBF9F7),
       body: SafeArea(

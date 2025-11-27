@@ -21,6 +21,7 @@ dependencies:
   app_links: ^6.4.1
   shared_preferences: ^2.5.3
   flutter_svg: ^2.2.3
+  rename: ^3.1.0
 
 dependency_overrides:
   pinenacl: ^0.6.0

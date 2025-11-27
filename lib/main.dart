@@ -3,6 +3,7 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:para_demo/app.dart';
 import 'package:para_demo/client/para_client.dart';
 import 'package:para_demo/provider/auth_provider.dart';
+import 'package:para_demo/provider/wallet_provider.dart';
 import 'package:para_demo/shared/app_theme.dart';
 import 'package:provider/provider.dart';
 
@@ -20,7 +21,10 @@ class ParaFlutterApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MultiProvider(
-      providers: [ChangeNotifierProvider(create: (_) => AuthProvider())],
+      providers: [
+        ChangeNotifierProvider(create: (_) => AuthProvider()),
+        ChangeNotifierProvider(create: (_) => WalletProvider()),
+      ],
       child: MaterialApp(
         title: 'Para Wallet',
         debugShowCheckedModeBanner: false,
