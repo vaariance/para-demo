@@ -13,13 +13,9 @@ enum AppAuthState { initial, loading, authenticated, unauthenticated, error }
 
 enum SocialProvider { google, apple, discord }
 
-enum SmartWalletState { initial, loading, created }
-
 class AuthProvider with ChangeNotifier {
   AppAuthState _state = AppAuthState.initial;
-  SmartWalletState _smartWalletState = SmartWalletState.initial;
   ParaUser? _currentUser;
-  SmartWallet? _smartWallet;
   String? _errorMessage;
   late final FlutterWebAuthSession _webAuthSession;
 
@@ -28,12 +24,6 @@ class AuthProvider with ChangeNotifier {
   String? get errorMessage => _errorMessage;
   bool get isAuthenticated => _state == AppAuthState.authenticated;
   bool get isLoading => _state == AppAuthState.loading;
-  SmartWalletState get smartWalletState => _smartWalletState;
-  bool get isCreatingSmartWallet =>
-      _smartWalletState == SmartWalletState.loading;
-  bool get isSmartWalletCreated =>
-      _smartWalletState == SmartWalletState.created;
-  SmartWallet? get smartWallet => _smartWallet;
 
   AuthProvider() {
     _webAuthSession = FlutterWebAuthSession(callbackUrlScheme: 'parademo');
@@ -166,35 +156,6 @@ class AuthProvider with ChangeNotifier {
     debugPrint('$providerName login finalized successfully');
   }
 
-  Future<void> createSafeAccounts(List<Wallet> wallets) async {
-    try {
-      _setSmartWalletState(SmartWalletState.loading);
-      final safeAccount = await ParaSigner.createSafeAccount(
-        paraClient.para,
-        wallets.where((w) => w.type == WalletType.evm).first,
-        getChain(),
-        Uint256.zero,
-      );
-      _smartWallet = safeAccount;
-      _setSmartWalletState(SmartWalletState.created);
-    } catch (e) {
-      log(e.toString());
-      _setSmartWalletState(SmartWalletState.initial);
-      rethrow;
-    }
-  }
-
-  Chain getChain() {
-    return Chains.getChain(Network.baseTestnet)
-      ..accountFactory = Addresses.safeProxyFactoryAddress
-      ..bundlerUrl =
-          'https://api.pimlico.io/v2/84532/rpc?apikey=pim_7j7g4uNKovQUN4kXWRvCKU'
-      ..jsonRpcUrl = 'https://base-sepolia.gateway.tenderly.co'
-      ..testnet = true
-      ..paymasterUrl =
-          'https://api.pimlico.io/v2/84532/rpc?apikey=pim_7j7g4uNKovQUN4kXWRvCKU';
-  }
-
   Future<void> logout() async {
     try {
       debugPrint('Logging out user...');
@@ -246,11 +207,6 @@ class AuthProvider with ChangeNotifier {
 
   void _setState(AppAuthState newState) {
     _state = newState;
-    notifyListeners();
-  }
-
-  void _setSmartWalletState(SmartWalletState newState) {
-    _smartWalletState = newState;
     notifyListeners();
   }
 

@@ -36,7 +36,8 @@ class _WalletsScreenState extends State<WalletsScreen> {
 
   void _handleAuthError(dynamic error) {
     final errorString = error.toString().toLowerCase();
-    final isAuthError = errorString.contains('401') ||
+    final isAuthError =
+        errorString.contains('401') ||
         errorString.contains('unauthorized') ||
         errorString.contains('user must be authenticated') ||
         errorString.contains('authentication');
@@ -225,7 +226,7 @@ class _WalletsScreenState extends State<WalletsScreen> {
   }
 
   void _navigateToSafeTransaction() {
-    final smartWallet = context.read<AuthProvider>().smartWallet;
+    final smartWallet = context.read<WalletProvider>().smartWallet;
     if (smartWallet == null) return;
 
     Navigator.of(context).push(
@@ -249,7 +250,9 @@ class _WalletsScreenState extends State<WalletsScreen> {
     }
 
     try {
-      await context.read<AuthProvider>().createSafeAccounts(walletProvider.wallets);
+      await context.read<WalletProvider>().createSafeAccounts(
+        walletProvider.wallets,
+      );
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -272,17 +275,18 @@ class _WalletsScreenState extends State<WalletsScreen> {
   }
 
   int _calculateItemCount(int walletCount, bool hasSafeAccount) {
-    // Safe Account card (if exists) + Create Safe Account button (if not exists) + wallets + Add Wallet card
     if (hasSafeAccount) {
-      return 1 + walletCount + 1; // Safe Account + wallets + Add Wallet
+      return 1 + walletCount + 1;
     } else {
-      return 1 + walletCount + 1; // Create Safe Account button + wallets + Add Wallet
+      return 1 + walletCount + 1;
     }
   }
 
-  Widget _buildCreateSafeAccountCard(AuthProvider authProvider) {
+  Widget _buildCreateSafeAccountCard(WalletProvider authProvider) {
     return GestureDetector(
-      onTap: authProvider.isCreatingSmartWallet ? null : _handleCreateSafeAccount,
+      onTap: authProvider.isCreatingSmartWallet
+          ? null
+          : _handleCreateSafeAccount,
       child: Container(
         padding: const EdgeInsets.all(20),
         decoration: BoxDecoration(
@@ -350,10 +354,7 @@ class _WalletsScreenState extends State<WalletsScreen> {
                         SizedBox(height: 4),
                         Text(
                           'Enhanced security smart wallet',
-                          style: TextStyle(
-                            fontSize: 13,
-                            color: Colors.black54,
-                          ),
+                          style: TextStyle(fontSize: 13, color: Colors.black54),
                         ),
                       ],
                     ),
@@ -398,7 +399,10 @@ class _WalletsScreenState extends State<WalletsScreen> {
               onPressed: walletProvider.isDeletingAccount
                   ? null
                   : widget.onLogout,
-              child: const Text('Logout', style: TextStyle(color: Colors.black)),
+              child: const Text(
+                'Logout',
+                style: TextStyle(color: Colors.black),
+              ),
             ),
           ),
           Consumer<WalletProvider>(
@@ -412,8 +416,7 @@ class _WalletsScreenState extends State<WalletsScreen> {
                       width: 16,
                       child: CircularProgressIndicator(strokeWidth: 2),
                     )
-                  : const Text('Delete',
-                      style: TextStyle(color: Colors.red)),
+                  : const Text('Delete', style: TextStyle(color: Colors.red)),
             ),
           ),
         ],
@@ -439,8 +442,8 @@ class _WalletsScreenState extends State<WalletsScreen> {
                   TextButton(
                     onPressed: () {
                       context.read<WalletProvider>().loadWallets().catchError(
-                            (e) => _handleAuthError(e),
-                          );
+                        (e) => _handleAuthError(e),
+                      );
                     },
                     child: const Text('Retry'),
                   ),
@@ -451,7 +454,7 @@ class _WalletsScreenState extends State<WalletsScreen> {
 
           return RefreshIndicator(
             onRefresh: _handleRefresh,
-            child: Consumer<AuthProvider>(
+            child: Consumer<WalletProvider>(
               builder: (context, authProvider, child) {
                 return walletProvider.wallets.isEmpty
                     ? ListView(
@@ -533,8 +536,8 @@ class _WalletsScreenState extends State<WalletsScreen> {
                           // Adjust for the create button
                           final adjustedWalletIndex =
                               authProvider.smartWallet == null
-                                  ? walletIndex - 1
-                                  : walletIndex;
+                              ? walletIndex - 1
+                              : walletIndex;
 
                           // Show "Add Wallet" card at the end
                           if (adjustedWalletIndex ==

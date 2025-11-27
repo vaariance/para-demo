@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:para/para.dart';
+import 'package:para_demo/provider/wallet_provider.dart';
+import 'package:provider/provider.dart';
 import 'package:variance_dart/variance_dart.dart';
 
 class SafeTransactionScreen extends StatefulWidget {
   final SmartWallet smartWallet;
 
-  const SafeTransactionScreen({
-    super.key,
-    required this.smartWallet,
-  });
+  const SafeTransactionScreen({super.key, required this.smartWallet});
 
   @override
   State<SafeTransactionScreen> createState() => _SafeTransactionScreenState();
@@ -31,22 +31,10 @@ class _SafeTransactionScreenState extends State<SafeTransactionScreen> {
   }
 
   Future<void> _sendTransaction() async {
-    if (_toAddressController.text.isEmpty || _amountController.text.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Please fill in all fields'),
-          backgroundColor: Colors.red,
-        ),
-      );
-      return;
-    }
-
     setState(() => _isSending = true);
 
     try {
-      // TODO: Implement actual transaction sending logic
-      // This is a placeholder for the transaction logic
-      await Future.delayed(const Duration(seconds: 2));
+      await context.read<WalletProvider>().simulateTransfer(widget.smartWallet);
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -55,8 +43,6 @@ class _SafeTransactionScreenState extends State<SafeTransactionScreen> {
             backgroundColor: Colors.green,
           ),
         );
-        _toAddressController.clear();
-        _amountController.clear();
       }
     } catch (e) {
       if (mounted) {
@@ -111,10 +97,7 @@ class _SafeTransactionScreenState extends State<SafeTransactionScreen> {
                 children: [
                   const Text(
                     'From',
-                    style: TextStyle(
-                      color: Colors.white70,
-                      fontSize: 12,
-                    ),
+                    style: TextStyle(color: Colors.white70, fontSize: 12),
                   ),
                   const SizedBox(height: 4),
                   Text(
@@ -129,10 +112,7 @@ class _SafeTransactionScreenState extends State<SafeTransactionScreen> {
                   const SizedBox(height: 8),
                   const Text(
                     'Safe Account',
-                    style: TextStyle(
-                      color: Colors.white70,
-                      fontSize: 12,
-                    ),
+                    style: TextStyle(color: Colors.white70, fontSize: 12),
                   ),
                 ],
               ),
@@ -149,23 +129,7 @@ class _SafeTransactionScreenState extends State<SafeTransactionScreen> {
                 color: Colors.black87,
               ),
             ),
-            const SizedBox(height: 8),
-            TextField(
-              controller: _toAddressController,
-              decoration: InputDecoration(
-                hintText: '0x...',
-                prefixIcon: const Icon(Icons.person_outline),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                filled: true,
-                fillColor: Colors.white,
-              ),
-              style: const TextStyle(fontFamily: 'monospace'),
-            ),
-
             const SizedBox(height: 24),
-
             // Amount Input
             const Text(
               'Amount (ETH)',
@@ -174,21 +138,6 @@ class _SafeTransactionScreenState extends State<SafeTransactionScreen> {
                 fontWeight: FontWeight.w600,
                 color: Colors.black87,
               ),
-            ),
-            const SizedBox(height: 8),
-            TextField(
-              controller: _amountController,
-              decoration: InputDecoration(
-                hintText: '0.0',
-                prefixIcon: const Icon(Icons.attach_money),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                filled: true,
-                fillColor: Colors.white,
-              ),
-              keyboardType:
-                  const TextInputType.numberWithOptions(decimal: true),
             ),
 
             const SizedBox(height: 32),
@@ -212,8 +161,9 @@ class _SafeTransactionScreenState extends State<SafeTransactionScreen> {
                         width: 24,
                         child: CircularProgressIndicator(
                           strokeWidth: 2,
-                          valueColor:
-                              AlwaysStoppedAnimation<Color>(Colors.white),
+                          valueColor: AlwaysStoppedAnimation<Color>(
+                            Colors.white,
+                          ),
                         ),
                       )
                     : const Text(
@@ -235,25 +185,16 @@ class _SafeTransactionScreenState extends State<SafeTransactionScreen> {
               decoration: BoxDecoration(
                 color: Colors.blue.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(12),
-                border: Border.all(
-                  color: Colors.blue.withValues(alpha: 0.3),
-                ),
+                border: Border.all(color: Colors.blue.withValues(alpha: 0.3)),
               ),
               child: Row(
                 children: [
-                  Icon(
-                    Icons.info_outline,
-                    color: Colors.blue[700],
-                    size: 24,
-                  ),
+                  Icon(Icons.info_outline, color: Colors.blue[700], size: 24),
                   const SizedBox(width: 12),
                   const Expanded(
                     child: Text(
                       'Transactions are processed through your Safe Account with enhanced security.',
-                      style: TextStyle(
-                        fontSize: 12,
-                        color: Colors.black87,
-                      ),
+                      style: TextStyle(fontSize: 12, color: Colors.black87),
                     ),
                   ),
                 ],
