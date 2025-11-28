@@ -133,6 +133,7 @@ class WalletProvider with ChangeNotifier {
 
       final reciept = await tx.wait();
       final txHash = reciept?.userOpHash;
+      log('Transaction hash: $txHash');
       if (txHash == null) {
         return (false, "Transaction failed");
       }
@@ -149,7 +150,9 @@ class WalletProvider with ChangeNotifier {
 
   Future<void> mintTransfer() async {
     if (_smartWallet == null) {
-      throw Exception('Smart wallet not created yet. Please create a Safe account first.');
+      throw Exception(
+        'Smart wallet not created yet. Please create a Safe account first.',
+      );
     }
 
     final result = await simulateTransfer(_smartWallet!);
@@ -160,7 +163,9 @@ class WalletProvider with ChangeNotifier {
 
   Future<void> mintNft() async {
     if (_smartWallet == null) {
-      throw Exception('Smart wallet not created yet. Please create a Safe account first.');
+      throw Exception(
+        'Smart wallet not created yet. Please create a Safe account first.',
+      );
     }
 
     try {
