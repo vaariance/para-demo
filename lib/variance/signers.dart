@@ -1,3 +1,5 @@
+import 'dart:convert';
+import 'dart:developer';
 import 'dart:typed_data';
 import 'package:para/para.dart' as para;
 import 'package:variance_dart/variance_dart.dart';
@@ -49,7 +51,9 @@ class ParaSigner extends MSI {
     );
 
     if (sig is para.SuccessfulSignatureResult) {
-      return hexToBytes(sig.signedTransaction);
+      final sigWParity = hexToBytes(sig.signedTransaction);
+      final v = sigWParity[64] + 27;
+      return sigWParity.sublist(0, 64).concat(intToBytes(BigInt.from(v)));
     }
 
     throw Exception("Failed to sign message: $sig");
@@ -66,7 +70,11 @@ class ParaSigner extends MSI {
 
     final r = bytesToUnsignedInt(signature.sublist(0, 32));
     final s = bytesToUnsignedInt(signature.sublist(32, 64));
-    final v = signature[64];
+    var v = signature[64];
+
+    if (v < 27) {
+      v = v + 27;
+    }
 
     return MsgSignature(r, s, v);
   }

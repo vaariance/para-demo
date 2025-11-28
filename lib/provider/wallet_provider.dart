@@ -92,30 +92,30 @@ class WalletProvider with ChangeNotifier {
     return Chains.getChain(Network.baseTestnet)
       ..accountFactory = Addresses.safeProxyFactoryAddress
       ..bundlerUrl = ''
-      ..jsonRpcUrl = 'https://sepolia.base.org'
+      ..jsonRpcUrl = 'https://base-sepolia.drpc.org'
       ..testnet = true
       ..paymasterUrl = '';
   }
 
   Future<(bool, String)> simulateTransfer(SmartWallet smartWallet) async {
-    log('My address ${smartWallet.address.hex}');
+    final mintAbi = ContractAbis.get("ERC20_Mint");
     final amount = BigInt.from(20e18);
+    final mintCall = Contract.encodeFunctionCall("mint", erc20, mintAbi, [
+      smartWallet.address,
+      amount,
+    ]);
 
     final transferCall = Contract.encodeERC20TransferCall(
       erc20,
       dump,
-      web3dart.EtherAmount.fromBigInt(web3dart.EtherUnit.ether, amount),
+      web3dart.EtherAmount.fromBigInt(web3dart.EtherUnit.wei, amount),
     );
 
     try {
       UserOperationResponse? tx;
-      tx = await smartWallet.sendTransaction(
-        erc20,
-        transferCall,
-        amount: web3dart.EtherAmount.fromBigInt(
-          web3dart.EtherUnit.ether,
-          amount,
-        ),
+      tx = await smartWallet.sendBatchedTransaction(
+        [erc20, erc20],
+        [mintCall, transferCall],
       );
 
       final reciept = await tx.wait();
