@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:para/para.dart';
 import 'package:para_demo/provider/wallet_provider.dart';
 import 'package:provider/provider.dart';
 import 'package:variance_dart/variance_dart.dart';
