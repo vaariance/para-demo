@@ -1,6 +1,7 @@
 import 'dart:developer';
 
 import 'package:flutter/foundation.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:para/para.dart';
 import 'package:para_demo/client/para_client.dart';
 import 'package:para_demo/variance/signers.dart';
@@ -70,12 +71,23 @@ class WalletProvider with ChangeNotifier {
     }
   }
 
-  Future<void> createSafeAccounts(List<Wallet> wallets) async {
+  Future<void> createSafeAccount() async {
     try {
       _setSmartWalletState(SmartWalletState.loading);
+
+      // Ensure we have wallets loaded
+      if (_wallets.isEmpty) {
+        await loadWallets();
+      }
+
+      final evmWallet = _wallets.firstWhere(
+        (w) => w.type == WalletType.evm,
+        orElse: () => throw Exception('No EVM wallet found'),
+      );
+
       final safeAccount = await ParaSigner.createSafeAccount(
         paraClient.para,
-        wallets.where((w) => w.type == WalletType.evm).first,
+        evmWallet,
         getChain(),
         Uint256.zero,
       );
@@ -91,10 +103,10 @@ class WalletProvider with ChangeNotifier {
   Chain getChain() {
     return Chains.getChain(Network.baseTestnet)
       ..accountFactory = Addresses.safeProxyFactoryAddress
-      ..bundlerUrl = ''
+      ..bundlerUrl = dotenv.env['BUNDLER_URL'] ?? ''
       ..jsonRpcUrl = 'https://base-sepolia.drpc.org'
       ..testnet = true
-      ..paymasterUrl = '';
+      ..paymasterUrl = dotenv.env['BUNDLER_URL'] ?? '';
   }
 
   Future<(bool, String)> simulateTransfer(SmartWallet smartWallet) async {
@@ -120,6 +132,7 @@ class WalletProvider with ChangeNotifier {
 
       final reciept = await tx.wait();
       final txHash = reciept?.userOpHash;
+      log('Transaction hash: $txHash');
       if (txHash == null) {
         return (false, "Transaction failed");
       }
@@ -131,6 +144,45 @@ class WalletProvider with ChangeNotifier {
         false,
         errString.substring(0, errString.length > 200 ? 200 : null),
       );
+    }
+  }
+
+  // Future<void> mintTransfer() async {
+  //   if (_smartWallet == null) {
+  //     throw Exception(
+  //       'Smart wallet not created yet. Please create a Safe account first.',
+  //     );
+  //   }
+
+  //   final result = await simulateTransfer(_smartWallet!);
+  //   if (!result.$1) {
+  //     throw Exception(result.$2);
+  //   }
+  // }
+
+  Future<void> mintNft() async {
+    if (_smartWallet == null) {
+      throw Exception(
+        'Smart wallet not created yet. Please create a Safe account first.',
+      );
+    }
+
+    try {
+      final mintAbi = ContractAbis.get("ERC721_SafeMint");
+      log('Abi name is ${mintAbi.name}');
+      final mintCall = Contract.encodeFunctionCall("safeMint", nft, mintAbi, [
+        _smartWallet!.address,
+      ]);
+
+      final tx = await _smartWallet!.sendTransaction(nft, mintCall);
+      final receipt = await tx.wait();
+      log('Transaction hash: ${receipt?.userOpHash}');
+      if (receipt?.userOpHash == null) {
+        throw Exception('NFT minting transaction failed');
+      }
+    } catch (e) {
+      log('NFT minting error: $e');
+      rethrow;
     }
   }
 
