@@ -102,12 +102,10 @@ class WalletProvider with ChangeNotifier {
   Chain getChain() {
     return Chains.getChain(Network.baseTestnet)
       ..accountFactory = Addresses.safeProxyFactoryAddress
-      ..bundlerUrl =
-          'https://api.pimlico.io/v2/84532/rpc?apikey=pim_NuuL4a9tBdyfoogF5LtP5A'
+      ..bundlerUrl = ''
       ..jsonRpcUrl = 'https://base-sepolia.drpc.org'
       ..testnet = true
-      ..paymasterUrl =
-          'https://api.pimlico.io/v2/84532/rpc?apikey=pim_NuuL4a9tBdyfoogF5LtP5A';
+      ..paymasterUrl = '';
   }
 
   Future<(bool, String)> simulateTransfer(SmartWallet smartWallet) async {
@@ -169,7 +167,7 @@ class WalletProvider with ChangeNotifier {
     }
 
     try {
-      final mintAbi = ContractAbis.get("ERC721_Mint");
+      final mintAbi = ContractAbis.get("ERC721_SafeMint");
       final mintCall = Contract.encodeFunctionCall("mint", nft, mintAbi, [
         _smartWallet!.address,
       ]);
