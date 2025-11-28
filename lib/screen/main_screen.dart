@@ -223,7 +223,7 @@ class _MainScreenState extends State<MainScreen> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          'EVM Wallet Address',
+                          'Evm Signer',
                           style: Theme.of(context)
                               .textTheme
                               .titleMedium
@@ -333,13 +333,14 @@ class _MainScreenState extends State<MainScreen> {
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        _ActionButton(
-                          label: 'Create Safe Account',
-                          icon: Icons.account_balance_wallet,
-                          onPressed: _isProcessing ? null : _handleCreateSafeAccount,
-                          color: const Color(0xFF6366F1),
-                        ),
-                        const SizedBox(height: 16),
+                        if (!hasSafeAccount)
+                          _ActionButton(
+                            label: 'Create Safe Account',
+                            icon: Icons.account_balance_wallet,
+                            onPressed: _isProcessing ? null : _handleCreateSafeAccount,
+                            color: const Color(0xFF6366F1),
+                          ),
+                        if (!hasSafeAccount) const SizedBox(height: 16),
                         _ActionButton(
                           label: 'Mint Transfer',
                           icon: Icons.swap_horiz,
