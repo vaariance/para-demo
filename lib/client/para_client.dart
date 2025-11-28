@@ -16,7 +16,7 @@ class ParaClient {
       config: ParaConfig(
         apiKey: dotenv.env['PARA_API_KEY'] ?? '',
         environment: Environment.beta,
-        requestTimeout: const Duration(seconds: 30), // Increase timeout
+        requestTimeout: const Duration(seconds: 60), // Increase timeout
       ),
       appScheme: 'parademo',
       sessionPersistence: sessionPersistence,
