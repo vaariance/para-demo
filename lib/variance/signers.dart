@@ -1,21 +1,20 @@
 import 'dart:convert';
-import 'dart:developer';
 import 'dart:typed_data';
 import 'package:para/para.dart' as para;
+import 'package:para_demo/client/parra_extension.dart';
 import 'package:variance_dart/variance_dart.dart';
 import 'package:web3_signers/web3_signers.dart';
 import 'package:web3dart/crypto.dart';
-import 'package:web3dart/web3dart.dart';
 import 'package:eth_sig_util/eth_sig_util.dart';
 
 class ParaSigner extends MSI {
-  final para.Para client;
+  final Parra client;
   final para.Wallet _wallet;
 
   ParaSigner._(this.client, this._wallet);
 
   static Future<SmartWallet> createSafeAccount(
-    para.Para client,
+    Parra client,
     para.Wallet wallet,
     Chain chain,
     Uint256 salt,
@@ -26,7 +25,7 @@ class ParaSigner extends MSI {
     return await factory.createSafeAccount(salt);
   }
 
-  static ParaSigner fromWallet(para.Para client, para.Wallet wallet) {
+  static ParaSigner fromWallet(Parra client, para.Wallet wallet) {
     if (wallet.id == null || wallet.address == null) {
       throw ArgumentError('Wallet must have an ID and address');
     }
@@ -45,18 +44,31 @@ class ParaSigner extends MSI {
 
   @override
   Future<Uint8List> personalSign(Uint8List hash, {int? index}) async {
-    final sig = await client.signMessage(
-      message: hexlify(hash),
+    final prefix = '\u0019Ethereum Signed Message:\n${hash.length}';
+    final prefixBytes = ascii.encode(prefix);
+    final payload = prefixBytes.concat(hash);
+    final digest = keccak256(payload);
+    final sig = await client.signMessageRaw(
       walletId: _wallet.id!,
+      messageBase64: base64Encode(digest),
     );
 
-    if (sig is para.SuccessfulSignatureResult) {
-      final sigWParity = hexToBytes(sig.signedTransaction);
-      final v = sigWParity[64] + 27;
-      return sigWParity.sublist(0, 64).concat(intToBytes(BigInt.from(v)));
+    if (sig is! para.SuccessfulSignatureResult) {
+      throw Exception("Failed to sign message: $sig");
     }
 
-    throw Exception("Failed to sign message: $sig");
+    final sigWParity = hexToBytes(sig.signedTransaction);
+    if (sigWParity.length != 65) {
+      throw Exception("Unexpected signature length: ${sigWParity.length}");
+    }
+
+    final rAndS = sigWParity.sublist(0, 64);
+    final parity = sigWParity[64];
+
+    final v = 27 + parity;
+    final signature = Uint8List.fromList([...rAndS, v]);
+
+    return signature;
   }
 
   @override

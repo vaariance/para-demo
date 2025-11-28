@@ -1,13 +1,6 @@
-import 'dart:developer';
-
 import 'package:flutter/foundation.dart';
-import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:para/para.dart';
 import 'package:para_demo/client/para_client.dart';
-import 'package:para_demo/variance/signers.dart';
-import 'package:variance_dart/variance_dart.dart';
-import 'package:web3_signers/web3_signers.dart';
-import 'package:web3dart/web3dart.dart' as web3dart;
 
 enum AppAuthState { initial, loading, authenticated, unauthenticated, error }
 
