@@ -80,7 +80,7 @@ class _MainScreenState extends State<MainScreen> {
 
     try {
       final walletProvider = context.read<WalletProvider>();
-      await walletProvider.mintTransfer();
+      await walletProvider.mintNft();
 
       if (mounted) {
         setState(() {
@@ -174,10 +174,7 @@ class _MainScreenState extends State<MainScreen> {
         elevation: 0,
         title: const Text(
           'Para Demo',
-          style: TextStyle(
-            color: Colors.black,
-            fontWeight: FontWeight.w600,
-          ),
+          style: TextStyle(color: Colors.black, fontWeight: FontWeight.w600),
         ),
         actions: [
           IconButton(
@@ -224,9 +221,7 @@ class _MainScreenState extends State<MainScreen> {
                       children: [
                         Text(
                           'Evm Signer',
-                          style: Theme.of(context)
-                              .textTheme
-                              .titleMedium
+                          style: Theme.of(context).textTheme.titleMedium
                               ?.copyWith(
                                 fontWeight: FontWeight.w600,
                                 color: Colors.grey[700],
@@ -235,9 +230,7 @@ class _MainScreenState extends State<MainScreen> {
                         const SizedBox(height: 12),
                         Text(
                           walletAddress ?? 'Loading...',
-                          style: Theme.of(context)
-                              .textTheme
-                              .bodyMedium
+                          style: Theme.of(context).textTheme.bodyMedium
                               ?.copyWith(
                                 fontFamily: 'monospace',
                                 color: Colors.black87,
@@ -261,7 +254,9 @@ class _MainScreenState extends State<MainScreen> {
                         ),
                         boxShadow: [
                           BoxShadow(
-                            color: const Color(0xFF6366F1).withValues(alpha: 0.1),
+                            color: const Color(
+                              0xFF6366F1,
+                            ).withValues(alpha: 0.1),
                             blurRadius: 10,
                             offset: const Offset(0, 4),
                           ),
@@ -280,9 +275,7 @@ class _MainScreenState extends State<MainScreen> {
                               const SizedBox(width: 8),
                               Text(
                                 'Safe Account Address',
-                                style: Theme.of(context)
-                                    .textTheme
-                                    .titleMedium
+                                style: Theme.of(context).textTheme.titleMedium
                                     ?.copyWith(
                                       fontWeight: FontWeight.w600,
                                       color: const Color(0xFF6366F1),
@@ -293,9 +286,7 @@ class _MainScreenState extends State<MainScreen> {
                           const SizedBox(height: 12),
                           Text(
                             safeAddress,
-                            style: Theme.of(context)
-                                .textTheme
-                                .bodyMedium
+                            style: Theme.of(context).textTheme.bodyMedium
                                 ?.copyWith(
                                   fontFamily: 'monospace',
                                   color: Colors.black87,
@@ -337,7 +328,9 @@ class _MainScreenState extends State<MainScreen> {
                           _ActionButton(
                             label: 'Create Safe Account',
                             icon: Icons.account_balance_wallet,
-                            onPressed: _isProcessing ? null : _handleCreateSafeAccount,
+                            onPressed: _isProcessing
+                                ? null
+                                : _handleCreateSafeAccount,
                             color: const Color(0xFF6366F1),
                           ),
                         if (!hasSafeAccount) const SizedBox(height: 16),
@@ -362,9 +355,7 @@ class _MainScreenState extends State<MainScreen> {
                   if (_isProcessing)
                     const Padding(
                       padding: EdgeInsets.all(24.0),
-                      child: Center(
-                        child: CircularProgressIndicator(),
-                      ),
+                      child: Center(child: CircularProgressIndicator()),
                     ),
                 ],
               ),
@@ -412,10 +403,7 @@ class _ActionButton extends StatelessWidget {
             const SizedBox(width: 12),
             Text(
               label,
-              style: const TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.w600,
-              ),
+              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
             ),
           ],
         ),

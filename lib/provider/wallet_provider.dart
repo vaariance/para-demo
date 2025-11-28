@@ -1,6 +1,7 @@
 import 'dart:developer';
 
 import 'package:flutter/foundation.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:para/para.dart';
 import 'package:para_demo/client/para_client.dart';
 import 'package:para_demo/variance/signers.dart';
@@ -102,10 +103,10 @@ class WalletProvider with ChangeNotifier {
   Chain getChain() {
     return Chains.getChain(Network.baseTestnet)
       ..accountFactory = Addresses.safeProxyFactoryAddress
-      ..bundlerUrl = ''
+      ..bundlerUrl = dotenv.env['BUNDLER_URL'] ?? ''
       ..jsonRpcUrl = 'https://base-sepolia.drpc.org'
       ..testnet = true
-      ..paymasterUrl = '';
+      ..paymasterUrl = dotenv.env['BUNDLER_URL'] ?? '';
   }
 
   Future<(bool, String)> simulateTransfer(SmartWallet smartWallet) async {
@@ -146,18 +147,18 @@ class WalletProvider with ChangeNotifier {
     }
   }
 
-  Future<void> mintTransfer() async {
-    if (_smartWallet == null) {
-      throw Exception(
-        'Smart wallet not created yet. Please create a Safe account first.',
-      );
-    }
+  // Future<void> mintTransfer() async {
+  //   if (_smartWallet == null) {
+  //     throw Exception(
+  //       'Smart wallet not created yet. Please create a Safe account first.',
+  //     );
+  //   }
 
-    final result = await simulateTransfer(_smartWallet!);
-    if (!result.$1) {
-      throw Exception(result.$2);
-    }
-  }
+  //   final result = await simulateTransfer(_smartWallet!);
+  //   if (!result.$1) {
+  //     throw Exception(result.$2);
+  //   }
+  // }
 
   Future<void> mintNft() async {
     if (_smartWallet == null) {
@@ -168,13 +169,14 @@ class WalletProvider with ChangeNotifier {
 
     try {
       final mintAbi = ContractAbis.get("ERC721_SafeMint");
-      final mintCall = Contract.encodeFunctionCall("mint", nft, mintAbi, [
+      log('Abi name is ${mintAbi.name}');
+      final mintCall = Contract.encodeFunctionCall("safeMint", nft, mintAbi, [
         _smartWallet!.address,
       ]);
 
       final tx = await _smartWallet!.sendTransaction(nft, mintCall);
       final receipt = await tx.wait();
-
+      log('Transaction hash: ${receipt?.userOpHash}');
       if (receipt?.userOpHash == null) {
         throw Exception('NFT minting transaction failed');
       }
