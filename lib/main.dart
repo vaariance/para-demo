@@ -4,7 +4,6 @@ import 'package:para_demo/app.dart';
 import 'package:para_demo/client/para_client.dart';
 import 'package:para_demo/provider/auth_provider.dart';
 import 'package:para_demo/provider/wallet_provider.dart';
-import 'package:para_demo/shared/app_theme.dart';
 import 'package:provider/provider.dart';
 
 void main() async {
@@ -26,10 +25,9 @@ class ParaFlutterApp extends StatelessWidget {
         ChangeNotifierProvider(create: (_) => WalletProvider()),
       ],
       child: MaterialApp(
-        title: 'Para Wallet',
-        debugShowCheckedModeBanner: false,
-        theme: AppTheme.darkTheme,
         home: const ParaApp(),
+        title: 'Para Demo',
+        debugShowCheckedModeBanner: false,
       ),
     );
   }
