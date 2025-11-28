@@ -19,11 +19,7 @@ dependencies:
   variance_dart: ^0.2.0
   provider: ^6.1.5+1
   app_links: ^6.4.1
-  shared_preferences: ^2.5.3
-  flutter_svg: ^2.2.3
-  rename: ^3.1.0
   web3dart: ^2.7.3
-  crypto: ^3.0.7
 
 dependency_overrides:
   pinenacl: 0.6.0
