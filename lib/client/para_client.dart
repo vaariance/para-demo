@@ -1,6 +1,6 @@
 import 'package:para/para.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
-import 'package:para_demo/client/parra_extension.dart';
+import 'package:para_demo/client/para_extension.dart';
 
 class ParaClient {
   static final ParaClient _instance = ParaClient._internal();
@@ -16,7 +16,7 @@ class ParaClient {
       config: ParaConfig(
         apiKey: dotenv.env['PARA_API_KEY'] ?? '',
         environment: Environment.beta,
-        requestTimeout: const Duration(seconds: 60), // Increase timeout
+        requestTimeout: const Duration(seconds: 60),
       ),
       appScheme: 'parademo',
       sessionPersistence: sessionPersistence,
