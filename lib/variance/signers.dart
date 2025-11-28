@@ -1,7 +1,7 @@
 import 'dart:convert';
 import 'dart:typed_data';
 import 'package:para/para.dart' as para;
-import 'package:para_demo/client/parra_extension.dart';
+import 'package:para_demo/client/para_extension.dart';
 import 'package:variance_dart/variance_dart.dart';
 import 'package:web3_signers/web3_signers.dart';
 import 'package:web3dart/crypto.dart';
