@@ -48,9 +48,6 @@ dependencies:
 
 ```bash
 
-https://github.com/user-attachments/assets/9fce562d-b8de-40eb-aec0-8d598ba81fc2
-
-
 flutter pub add para variance_dart web3_signers web3dart crypto eth_sig_util
 ```
 
@@ -329,4 +326,8 @@ Future<Uint8List> personalSign(Uint8List message) async {
 
   return Uint8List.fromList([...r, ...s, v]);
 }
+```
+## Demo vido
+```
+https://github.com/user-attachments/assets/9fce562d-b8de-40eb-aec0-8d598ba81fc2
 ```
