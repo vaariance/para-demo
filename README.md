@@ -38,7 +38,7 @@ dependencies:
 
 ### API Keys & Configuration
 
-1. **Para Account**: Sign up at [Para Dashboard](https://dashboard.getpara.com)
+1. **Para Account**: Sign up at [Para Dashboard](https://developer.getpara.com)
 2. **RPC Provider**: Your target RPC
 3. **Bundler**: ERC-4337 bundler endpoint (Pimlico, Stackup, Gelato or run your own)
 
