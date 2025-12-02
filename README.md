@@ -29,7 +29,7 @@ This integration demonstrates how to use **Para's embedded wallet** as a signer 
 dependencies:
   flutter: sdk: flutter
   para: ^latest_version
-  variance_dart: ^latest_version
+  variance_dart: ^0.2.0
   web3_signers: ^latest_version
   web3dart: ^2.7.0
   crypto: ^3.0.3
